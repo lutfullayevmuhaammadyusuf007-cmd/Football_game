@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram 2D Futbol Arena Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: none;
+            background: #0f172a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between h-screen p-3 select-none">
+
+    <!-- Main Menu Overlay -->
+    <div id="mainMenu" class="absolute inset-0 flex items-center justify-center bg-slate-950 z-50 p-4 transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl max-w-xs w-full text-center space-y-3 shadow-2xl overflow-y-auto max-h-[95%]">
+            <div class="flex justify-between items-center">
+                <span id="txtSelectLang" class="text-[10px] text-slate-400 font-bold uppercase">Til / Language</span>
+                <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-slate-800 text-xs text-white px-2 py-1 rounded-lg border border-slate-700 outline-none">
+                    <option value="uz">O'zbekcha</option>
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                    <option value="tr">Türkçe</option>
+                    <option value="kk">Қазақша</option>
+                    <option value="ky">Кыргызча</option>
+                    <option value="ar">العربية</option>
+                    <option value="zh">中文</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                    <option value="it">Italiano</option>
+                    <option value="ja">日本語</option>
+                    <option value="ko">한국어</option>
+                    <option value="pt">Português</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="tk">Türkmençe</option>
+                    <option value="az">Azərbaycan</option>
+                    <option value="tg">Тоҷикӣ</option>
+                    <option value="uk">Українська</option>
+                </select>
+            </div>
+
+            <div class="text-3xl animate-bounce">⚽🔥</div>
+            <div>
+                <h1 id="menuTitle" class="text-xl font-black text-white tracking-wider">TG FUTBOL PRO</h1>
+                <p id="menuSubtitle" class="text-[11px] text-slate-400 mt-1">Ommaviy Telegram Futbol Chempionati</p>
+            </div>
+            
+            <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700 flex justify-around text-xs">
+                <div>
+                    <span id="lblCoins" class="text-slate-400 block">Coinlar</span>
+                    <span id="menuCoins" class="font-bold text-amber-400 text-sm">0 🪙</span>
+                </div>
+                <div>
+                    <span id="lblBest" class="text-slate-400 block">Eng yaxshi</span>
+                    <span id="menuBestScore" class="font-bold text-emerald-400 text-sm">0 Gol</span>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <button onclick="startGamePlay()" id="btnStartGame" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold py-3 rounded-2xl shadow-lg transition active:scale-95 text-xs">
+                    🚀 O'YINNI BOSHLASH
+                </button>
+                <button onclick="openLeaderboard()" id="btnLeaderboard" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 font-extrabold py-3 rounded-2xl shadow-lg transition active:scale-95 text-xs">
+                    🏆 KUNLIK REYTING
+                </button>
+                <button onclick="openMenuShop()" id="btnShop" class="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-extrabold py-3 rounded-2xl shadow-lg transition active:scale-95 text-xs">
+                    🛒 MAGAZIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header bar -->
+    <header class="w-full max-w-sm flex justify-between items-center bg-slate-800/90 backdrop-blur p-2.5 rounded-xl border border-slate-700 shadow-lg">
+        <div class="flex items-center gap-2">
+            <button onclick="returnToMenu()" class="text-base">🏠</button>
+            <h1 id="headerArena" class="font-extrabold text-xs tracking-wide">Arena</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1 bg-amber-500/20 text-amber-300 px-2 py-1 rounded-lg border border-amber-500/30 text-[11px] font-bold">
+                <span>🪙</span> <span id="coinBalance">0</span>
+            </div>
+            <div class="flex gap-1 font-bold text-[11px]">
+                <div class="bg-blue-600/30 text-blue-400 px-2 py-1 rounded-lg border border-blue-500/30">
+                    <span id="lblYou">Siz</span>: <span id="playerScore">0</span>
+                </div>
+                <div class="bg-red-600/30 text-red-400 px-2 py-1 rounded-lg border border-red-500/30">
+                    Bot: <span id="botScore">0</span>
+                </div>
+            </div>
+            <button onclick="togglePause()" class="bg-slate-700 hover:bg-slate-600 text-white p-1 rounded-lg text-xs transition">
+                ⏸️
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Section -->
+    <main class="relative w-full max-w-sm flex-1 flex flex-col items-center justify-center my-1">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Controls & Power Shot placed on bottom outer area -->
+        <div class="w-full flex gap-2 mt-2 px-1">
+            <button id="powerShotBtn" class="flex-1 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-950 font-black text-xs py-2.5 rounded-xl shadow-lg border border-amber-200 transition active:scale-95 flex items-center justify-center gap-1">
+                ⚡ <span id="btnPowerText">KUCHLI ZARBA</span>
+            </button>
+            <button onclick="openMenuShop()" id="btnShopInGame" class="bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 font-bold text-xs px-3.5 py-2.5 rounded-xl transition active:scale-95">
+                🛒 <span id="btnShopText">Magazin</span>
+            </button>
+        </div>
+
+        <!-- Goal Notification Overlay -->
+        <div id="goalPopup" class="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 rounded-2xl">
+            <div class="text-center space-y-2">
+                <h2 id="goalText" class="text-2xl font-black text-yellow-400 tracking-wider uppercase animate-bounce px-4">GOOL!</h2>
+                <p id="coinRewardText" class="text-amber-300 font-bold text-xs">+30 🪙 Qo'shildi!</p>
+            </div>
+        </div>
+
+        <!-- Leaderboard Modal -->
+        <div id="leaderboardModal" class="absolute inset-0 flex items-center justify-center bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300 rounded-2xl z-40 p-4">
+            <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl max-w-xs w-full text-center space-y-4 shadow-2xl overflow-y-auto max-h-[90%]">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                    <h3 id="modalLeaderboardTitle" class="font-extrabold text-sm text-amber-400">🏆 Kunlik Reyting</h3>
+                    <button onclick="closeLeaderboard()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+                </div>
+                
+                <p id="modalLeaderboardDesc" class="text-[11px] text-slate-300">Har kuni eng ko'p gol urgan o'yinchilarga maxsus <b>Telegram sovrinlar</b> beriladi!</p>
+
+                <div id="leaderboardList" class="space-y-2 text-left text-xs"></div>
+
+                <button onclick="closeLeaderboard()" id="btnBackLead" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-bold transition text-xs">
+                    Orqaga qaytish
+                </button>
+            </div>
+        </div>
+
+        <!-- Pause Menu Overlay -->
+        <div id="pauseMenu" class="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300 rounded-2xl z-20">
+            <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl max-w-xs w-full text-center space-y-3 shadow-2xl">
+                <h3 id="pauseTitle" class="font-extrabold text-base text-white">O'yin Pauzada</h3>
+                <p id="pauseSubtitle" class="text-[11px] text-slate-400">Dam oling yoki menyuga qayting</p>
+                <button onclick="togglePause()" id="btnResume" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold transition text-xs">
+                    ▶️ Davom etish
+                </button>
+                <button onclick="returnToMenu()" id="btnHome" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-bold transition text-xs">
+                    🏠 Asosiy menyu
+                </button>
+                <button onclick="resetGame()" id="btnRestart" class="w-full bg-red-600/30 hover:bg-red-600/50 text-red-300 border border-red-500/30 py-2.5 rounded-xl font-bold transition text-xs">
+                    🔄 Yangidan boshlash
+                </button>
+            </div>
+        </div>
+
+        <!-- Shop Modal -->
+        <div id="shopModal" class="absolute inset-0 flex items-center justify-center bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300 rounded-2xl z-40 p-4">
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl max-w-xs w-full text-center space-y-3 shadow-2xl overflow-y-auto max-h-[90%]">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                    <h3 id="modalShopTitle" class="font-extrabold text-sm text-amber-400">🛒 O'yin Magazini</h3>
+                    <button onclick="closeMenuShop()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+                </div>
+                
+                <div class="text-xs text-slate-300"><span id="shopCoinsLabel">Tangalaringiz</span>: <span id="shopCoins" class="font-bold text-amber-400">0</span> 🪙</div>
+
+                <div class="space-y-2 text-left">
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                        <div>
+                            <h4 id="itemRedTitle" class="font-bold text-xs text-white">🔴 Qizil Libos</h4>
+                            <p id="itemRedDesc" class="text-[10px] text-slate-400">O'yinchi uchun qizil rang</p>
+                        </div>
+                        <button onclick="buyItem('skin_red', 50)" id="btn_skin_red" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2 py-1.5 rounded-lg text-xs transition">
+                            50 🪙
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                        <div>
+                            <h4 id="itemBallTitle" class="font-bold text-xs text-white">🟡 Oltin To'p</h4>
+                            <p id="itemBallDesc" class="text-[10px] text-slate-400">Yaltiroq maxsus to'p</p>
+                        </div>
+                        <button onclick="buyItem('ball_gold', 100)" id="btn_ball_gold" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2 py-1.5 rounded-lg text-xs transition">
+                            100 🪙
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                        <div>
+                            <h4 id="itemSpeedTitle" class="font-bold text-xs text-white">⚡ Super Tezlik</h4>
+                            <p id="itemSpeedDesc" class="text-[10px] text-slate-400">Harakat tezligini oshiradi</p>
+                        </div>
+                        <button onclick="buyItem('speed_boost', 150)" id="btn_speed_boost" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2 py-1.5 rounded-lg text-xs transition">
+                            150 🪙
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="closeMenuShop()" id="btnBackShop" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-bold transition text-xs">
+                    Orqaga qaytish
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const translations = {
+            uz: {
+                title: "TG FUTBOL PRO", subtitle: "Ommaviy Telegram Futbol Chempionati",
+                coins: "Coinlar", best: "Eng yaxshi", start: "🚀 O'YINNI BOSHLASH",
+                lead: "🏆 KUNLIK REYTING", shop: "🛒 MAGAZIN", arena: "Arena",
+                you: "Siz", power: "KUCHLI ZARBA", shopBtn: "Magazin",
+                pauseTitle: "O'yin Pauzada", pauseSub: "Dam oling yoki menyuga qayting",
+                resume: "▶️ Davom etish", home: "🏠 Asosiy menyu", restart: "🔄 Yangidan boshlash",
+                shopTitle: "🛒 O'yin Magazini", yourCoins: "Tangalaringiz",
+                redTitle: "🔴 Qizil Libos", redDesc: "O'yinchi uchun qizil rang",
+                ballTitle: "🟡 Oltin To'p", ballDesc: "Yaltiroq maxsus to'p",
+                speedTitle: "⚡ Super Tezlik", speedDesc: "Harakat tezligini oshiradi",
+                back: "Orqaga qaytish", active: "Faol / Tanlangan", buy: "sotib olish",
+                goal: "GOOL! SIZ YUTDINGIZ! (+30 🪙)", botGoal: "GOL! BOT G'OLIB BO'LDI!",
+                leadTitle: "🏆 Kunlik Reyting", leadDesc: "Har kuni eng ko'p gol urgan o'yinchilarga maxsus Telegram sovrinlar beriladi!",
+                prize: "Sovrin"
+            },
+            ru: {
+                title: "TG FOOTBALL PRO", subtitle: "Массовый Telegram Футбольный Чемпионат",
+                coins: "Монеты", best: "Рекорд", start: "🚀 НАЧАТЬ ИГРУ",
+                lead: "🏆 РЕЙТИНГ ДНЯ", shop: "🛒 МАГАЗИН", arena: "Арена",
+                you: "Вы", power: "СУПЕР УДАР", shopBtn: "Магазин",
+                pauseTitle: "Игра на паузе", pauseSub: "Отдохните или вернитесь в меню",
+                resume: "▶️ Продолжить", home: "🏠 Главное меню", restart: "🔄 Перезапустить",
+                shopTitle: "🛒 Игровой Магазин", yourCoins: "Ваши монеты",
+                redTitle: "🔴 Красная Форма", redDesc: "Красный цвет игрока",
+                ballTitle: "🟡 Золотой Мяч", ballDesc: "Блестящий особый мяч",
+                speedTitle: "⚡ Супер Скорость", speedDesc: "Увеличивает скорость движения",
+                back: "Назад", active: "Актив / Выбран", buy: "купить",
+                goal: "ГОЛ! ВЫ ПОБЕДИЛИ! (+30 🪙)", botGoal: "ГОЛ! БОТ ПОБЕДИЛ!",
+                leadTitle: "🏆 Рейтинг Дня", leadDesc: "Ежедневные призы Telegram для лучших бомбардиров!",
+                prize: "Приз"
+            },
+            en: {
+                title: "TG FOOTBALL PRO", subtitle: "Mass Telegram Football Championship",
+                coins: "Coins", best: "Best", start: "🚀 START GAME",
+                lead: "🏆 DAILY LEADERBOARD", shop: "🛒 SHOP", arena: "Arena",
+                you: "You", power: "SUPER SHOT", shopBtn: "Shop",
+                pauseTitle: "Game Paused", pauseSub: "Take a break or return to menu",
+                resume: "▶️ Resume", home: "🏠 Main Menu", restart: "🔄 Restart",
+                shopTitle: "🛒 Game Shop", yourCoins: "Your Coins",
+                redTitle: "🔴 Red Kit", redDesc: "Red color for player",
+                ballTitle: "🟡 Gold Ball", ballDesc: "Shiny special ball",
+                speedTitle: "⚡ Super Speed", speedDesc: "Increases movement speed",
+                back: "Back", active: "Active / Selected", buy: "buy",
+                goal: "GOAL! YOU WON! (+30 🪙)", botGoal: "GOAL! BOT WON!",
+                leadTitle: "🏆 Daily Leaderboard", leadDesc: "Special Telegram prizes for top scorers daily!",
+                prize: "Prize"
+            },
+            tr: {
+                title: "TG FUTBOL PRO", subtitle: "Kitlegesel Telegram Futbol Şampiyonası",
+                coins: "Jeton", best: "En İyi", start: "🚀 OYUNA BAŞLA",
+                lead: "🏆 GÜNLÜK LİSTE", shop: "🛒 MAĞAZA", arena: "Arena",
+                you: "Sen", power: "SÜPER ŞUT", shopBtn: "Mağaza",
+                pauseTitle: "Oyun Duraklatıldı", pauseSub: "Dinlenin veya menüye dönün",
+                resume: "▶️ Devam Et", home: "🏠 Ana Menü", restart: "🔄 Yeniden Başlat",
+                shopTitle: "🛒 Oyun Mağazası", yourCoins: "Jetonlarınız",
+                redTitle: "🔴 Kırmızı Forma", redDesc: "Oyuncu için kırmızı renk",
+                ballTitle: "🟡 Altın Top", ballDesc: "Parlak özel top",
+                speedTitle: "⚡ Süper Hız", speedDesc: "Hareket hızını artırır",
+                back: "Geri", active: "Aktif / Seçili", buy: "satın al",
+                goal: "GOL! KAZANDIN! (+30 🪙)", botGoal: "GOL! BOT KAZANDI!",
+                leadTitle: "🏆 Günlük Liderlik", leadDesc: "Her gün en çok gol atanlara özel Telegram ödülleri!",
+                prize: "Ödül"
+            },
+            kk: {
+                title: "TG FOOTBALL PRO", subtitle: "Жаппай Telegram Футбол Чемпионаты",
+                coins: "Монета", best: "Рекорд", start: "🚀 ОЙЫНДЫ БАСТАУ",
+                lead: "🏆 КҮНДЕЛІКТІ РЕЙТИНГ", shop: "🛒 ДҮКЕН", arena: "Арена",
+                you: "Сіз", power: "КҮШТІ СОҚҚЫ", shopBtn: "Дүкен",
+                pauseTitle: "Ойын Тоқтатылды", pauseSub: "Демалыңыз немесе мәзірге оралыңыз",
+                resume: "▶️ Жалғастыру", home: "🏠 Басты мәзір", restart: "🔄 Қайта бастау",
+                shopTitle: "🛒 Ойын Дүкені", yourCoins: "Монеталарыңыз",
+                redTitle: "🔴 Қызыл Форма", redDesc: "Ойыншыға арналған қызыл түс",
+                ballTitle: "🟡 Алтын Доп", ballDesc: "Жылтыр арнайы доп",
+                speedTitle: "⚡ Супер Жылдамдық", speedDesc: "Қозғалыс жылдамдығын арттырады",
+                back: "Артқа", active: "Белсенді / Таңдалған", buy: "сатып алу",
+                goal: "ГОЛ! СІЗ ЖЕҢДІҢІЗ! (+30 🪙)", botGoal: "ГОЛ! БОТ ЖЕҢДІ!",
+                leadTitle: "🏆 Күндүзгі Рейтинг", leadDesc: "Ең көп гол соққандарға арнайы сыйлықтар!",
+                prize: "Сыйлық"
+            },
+            ky: {
+                title: "TG FOOTBALL PRO", subtitle: "Массалык Telegram Футбол Чемпионаты",
+                coins: "Монета", best: "Рекорд", start: "🚀 ОЙУНДУ БАШТОО",
+                lead: "🏆 КҮНДҮК РЕЙТИНГ", shop: "🛒 ДҮКӨН", arena: "Арена",
+                you: "Сиз", power: "КҮЧTҮҮ СОКУУ", shopBtn: "Дүкөн",
+                pauseTitle: "Оюн Токтотулду", pauseSub: "Эс алыңыз же менюга кайтыңыз",
+                resume: "▶️ Улантуу", home: "🏠 Башкы меню", restart: "🔄 Кайра баштоо",
+                shopTitle: "🛒 Оюн Дүкөнү", yourCoins: "Монеталарыңыз",
+                redTitle: "🔴 Кызыл Форма", redDesc: "Оюнчу үчүн кызыл түс",
+                ballTitle: "🟡 Алтын Топ", ballDesc: "Жылтырак атайын топ",
+                speedTitle: "⚡ Супер Ылдамдык", speedDesc: "Кыймыл ылдамдыгын жогорулатат",
+                back: "Артка", active: "Активдүү / Тандалган", buy: "сатып алуу",
+                goal: "ГОЛ! СИЗ УТТУҢУЗ! (+30 🪙)", botGoal: "ГОЛ! БОТ УТТУ!",
+                leadTitle: "🏆 Күндүк Рейтинг", leadDesc: "Эң көп гол киргизгендерге Telegram сыйлыктары!",
+                prize: "Сыйлык"
+            },
+            ar: {
+                title: "TG كرة القدم برو", subtitle: "بطولة تيليجرام الكبرى لكرة القدم",
+                coins: "العملات", best: "الأفضل", start: "🚀 ابدأ اللعبة",
+                lead: "🏆 لوحة المتصدرين", shop: "🛒 المتجر", arena: "الساحة",
+                you: "أنت", power: "تسديدة قوية", shopBtn: "المتجر",
+                pauseTitle: "اللعبة مؤقتة", pauseSub: "خذ استراحة أو عُد للقائمة",
+                resume: "▶️ استمرار", home: "🏠 القائمة الرئيسية", restart: "🔄 إبداء من جديد",
+                shopTitle: "🛒 متجر اللعبة", yourCoins: "عملاتك",
+                redTitle: "🔴 زي أحمر", redDesc: "اللون الأحمر للاعب",
+                ballTitle: "🟡 كرة ذهبية", ballDesc: "كرة خاصة لامعة",
+                speedTitle: "⚡ سرعة فائقة", speedDesc: "تزيد سرعة الحركة",
+                back: "رجوع", active: "نشط / محدد", buy: "شراء",
+                goal: "هدف! لقد فزت! (+30 🪙)", botGoal: "هدف! فاز البوت!",
+                leadTitle: "🏆 لوحة الصدارة", leadDesc: "جوائز تليجرام خاصة لهدافي اليوم!",
+                prize: "جائزة"
+            },
+            zh: {
+                title: "TG 足球PRO", subtitle: "大众电报足球锦标赛",
+                coins: "金币", best: "最高分", start: "🚀 开始游戏",
+                lead: "🏆 每日排行榜", shop: "🛒 商店", arena: "竞技场",
+                you: "你", power: "超级射门", shopBtn: "商店",
+                pauseTitle: "游戏暂停", pauseSub: "休息一下或返回菜单",
+                resume: "▶️ 继续", home: "🏠 主菜单", restart: "🔄 重新开始",
+                shopTitle: "🛒 游戏商店", yourCoins: "你的金币",
+                redTitle: "🔴 红色队服", redDesc: "玩家的红色皮肤",
+                ballTitle: "🟡 黄金球", ballDesc: "闪亮的特殊球",
+                speedTitle: "⚡ 超级速度", speedDesc: "增加移动速度",
+                back: "返回", active: "激活 / 已选", buy: "购买",
+                goal: "进球！你赢了！(+30 🪙)", botGoal: "进球！机器人赢了！",
+                leadTitle: "🏆 每日排行榜", leadDesc: "为每日最佳射手提供 Telegram 特别奖励！",
+                prize: "奖品"
+            },
+            es: {
+                title: "TG FÚTBOL PRO", subtitle: "Campeonato de Fútbol Masivo de Telegram",
+                coins: "Monedas", best: "Mejor", start: "🚀 INICIAR JUEGO",
+                lead: "🏆 RANKING DIARIO", shop: "🛒 TIENDA", arena: "Arena",
+                you: "Tú", power: "SÚPER DISPARO", shopBtn: "Tienda",
+                pauseTitle: "Juego en Pausa", pauseSub: "Tómate un respiro o vuelve al menú",
+                resume: "▶️ Continuar", home: "🏠 Menú Principal", restart: "🔄 Reiniciar",
+                shopTitle: "🛒 Tienda de Juego", yourCoins: "Tus Monedas",
+                redTitle: "🔴 Uniforme Rojo", redDesc: "Color rojo para el jugador",
+                ballTitle: "🟡 Balón de Oro", ballDesc: "Balón especial brillante",
+                speedTitle: "⚡ Súper Velocidad", speedDesc: "Aumenta la velocidad de movimiento",
+                back: "Atrás", active: "Activo / Seleccionado", buy: "comprar",
+                goal: "¡GOL! ¡GANASTE! (+30 🪙)", botGoal: "¡GOL! ¡EL BOT GANÓ!",
+                leadTitle: "🏆 Ranking Diario", leadDesc: "¡Premios especiales de Telegram para los mejores goleadores!",
+                prize: "Premio"
+            },
+            fr: {
+                title: "TG FOOTBALL PRO", subtitle: "Championnat de Football de Telegram",
+                coins: "Pièces", best: "Meilleur", start: "🚀 JOUER",
+                lead: "🏆 CLASSEMENT", shop: "🛒 BOUTIQUE", arena: "Arène",
+                you: "Vous", power: "SUPER TIR", shopBtn: "Boutique",
+                pauseTitle: "Jeu en Pause", pauseSub: "Faites une pause ou retournez au menu",
+                resume: "▶️ Reprendre", home: "🏠 Menu Principal", restart: "🔄 Recommencer",
+                shopTitle: "🛒 Boutique du Jeu", yourCoins: "Vos Pièces",
+                redTitle: "🔴 Tenue Rouge", redDesc: "Couleur rouge pour le joueur",
+                ballTitle: "🟡 Ballon d'Or", ballDesc: "Ballon spécial brillant",
+                speedTitle: "⚡ Super Vitesse", speedDesc: "Augmente la vitesse de déplacement",
+                back: "Retour", active: "Actif / Sélectionné", buy: "acheter",
+                goal: "BUT ! VOUS AVEZ GAGNÉ ! (+30 🪙)", botGoal: "BUT ! LE BOT A GAGNÉ !",
+                leadTitle: "🏆 Classement Quotidien", leadDesc: "Prix Telegram spéciaux pour les meilleurs buteurs !",
+                prize: "Prix"
+            },
+            de: {
+                title: "TG FUSSBALL PRO", subtitle: "Massen-Telegram-Fußballmeisterschaft",
+                coins: "Münzen", best: "Bestwert", start: "🚀 SPIEL STARTEN",
+                lead: "🏆 TAGESBESTENLISTE", shop: "🛒 SHOP", arena: "Arena",
+                you: "Du", power: "SUPER SCHUSS", shopBtn: "Shop",
+                pauseTitle: "Spiel pausiert", pauseSub: "Pause machen oder zum Menü",
+                resume: "▶️ Fortsetzen", home: "🏠 Hauptmenü", restart: "🔄 Neustart",
+                shopTitle: "🛒 Spiele-Shop", yourCoins: "Deine Münzen",
+                redTitle: "🔴 Rotes Trikot", redDesc: "Rote Farbe für den Spieler",
+                ballTitle: "🟡 Goldener Ball", ballDesc: "Glänzender Spezialball",
+                speedTitle: "⚡ Super Tempo", speedDesc: "Erhöht die Bewegungsgeschwindigkeit",
+                back: "Zurück", active: "Aktiv / Ausgewählt", buy: "kaufen",
+                goal: "TOR! DU HAST GEWONNEN! (+30 🪙)", botGoal: "TOR! DER BOT HAT GEWONNEN!",
+                leadTitle: "🏆 Tägliche Rangliste", leadDesc: "Besondere Telegram-Preise für die besten Torschützen!",
+                prize: "Preis"
+            },
+            it: {
+                title: "TG CALCIO PRO", subtitle: "Campionato di Calcio di Telegram",
+                coins: "Monete", best: "Migliore", start: "🚀 INIZIA GIOCO",
+                lead: "🏆 CLASSIFICA", shop: "🛒 NEGOZIO", arena: "Arena",
+                you: "Tu", power: "SUPER TIRO", shopBtn: "Negozio",
+                pauseTitle: "Gioco in Pausa", pauseSub: "Fai una pausa o torna al menu",
+                resume: "▶️ Riprendi", home: "🏠 Menu Principale", restart: "🔄 Riavvia",
+                shopTitle: "🛒 Negozio di Gioco", yourCoins: "Le tue Monete",
+                redTitle: "🔴 Maglia Rossa", redDesc: "Colore rosso per il giocatore",
+                ballTitle: "🟡 Pallone d'Oro", ballDesc: "Speciale pallone lucido",
+                speedTitle: "⚡ Super Velocità", speedDesc: "Aumenta la velocità di movimento",
+                back: "Indietro", active: "Attivo / Selezionato", buy: "acquista",
+                goal: "GOL! HAI VINTO! (+30 🪙)", botGoal: "GOL! IL BOT HA VINTO!",
+                leadTitle: "🏆 Classifica Giornaliera", leadDesc: "Premi Telegram speciali per i migliori marcatori!",
+                prize: "Premio"
+            },
+            ja: {
+                title: "TG サッカー PRO", subtitle: "テレグラム大衆サッカー選手権",
+                coins: "コイン", best: "最高記録", start: "🚀 ゲームスタート",
+                lead: "🏆 デイリーランキング", shop: "🛒 ショップ", arena: "アリーナ",
+                you: "あなた", power: "スーパーシュート", shopBtn: "ショップ",
+                pauseTitle: "ゲーム一時停止", pauseSub: "休憩するかメニューに戻ります",
+                resume: "▶️ 再開", home: "🏠 メインメニュー", restart: "🔄 リスタート",
+                shopTitle: "🛒 ゲームショップ", yourCoins: "所持コイン",
+                redTitle: "🔴 レッドキット", redDesc: "プレイヤー用レッドカラー",
+                ballTitle: "🟡 ゴールドボール", ballDesc: "光るスペシャルボール",
+                speedTitle: "⚡ スーパースピード", speedDesc: "移動速度がアップします",
+                back: "戻る", active: "有効 / 選択中", buy: "購入",
+                goal: "ゴール！あなたの勝ち！(+30 🪙)", botGoal: "ゴール！ボットの勝ち！",
+                leadTitle: "🏆 デイリーランキング", leadDesc: "毎日のトップスコアラーにテレグラム特別賞！",
+                prize: "賞品"
+            },
+            ko: {
+                title: "TG 축구 PRO", subtitle: "대규모 텔레그램 축구 챔피언십",
+                coins: "코인", best: "최고 기록", start: "🚀 게임 시작",
+                lead: "🏆 일일 순위", shop: "🛒 상점", arena: "아레나",
+                you: "나", power: "슈퍼 슛", shopBtn: "상점",
+                pauseTitle: "일시 정지", pauseSub: "휴식을 취하거나 메뉴로 돌아가세요",
+                resume: "▶️ 계속하기", home: "🏠 메인 메뉴", restart: "🔄 다시 시작",
+                shopTitle: "🛒 게임 상점", yourCoins: "보유 코인",
+                redTitle: "🔴 레드 유니폼", redDesc: "플레이어용 빨간색",
+                ballTitle: "🟡 골든 볼", ballDesc: "반짝이는 특수 공",
+                speedTitle: "⚡ 슈퍼 스피드", speedDesc: "이동 속도를 증가시킵니다",
+                back: "뒤로", active: "사용 중 / 선택됨", buy: "구매",
+                goal: "골! 승리했습니다! (+30 🪙)", botGoal: "골! 봇이 승리했습니다!",
+                leadTitle: "🏆 일일 순위", leadDesc: "매일 최고 득점자에게 텔레그램 특별 상품 제공!",
+                prize: "상품"
+            },
+            pt: {
+                title: "TG FUTEBOL PRO", subtitle: "Campeonato de Futebol do Telegram",
+                coins: "Moedas", best: "Melhor", start: "🚀 INICIAR JOGO",
+                lead: "🏆 RANKING DIÁRIO", shop: "🛒 LOJA", arena: "Arena",
+                you: "Você", power: "SUPER CHUTE", shopBtn: "Loja",
+                pauseTitle: "Jogo Pausado", pauseSub: "Descanse ou volte ao menu",
+                resume: "▶️ Continuar", home: "🏠 Menu Principal", restart: "🔄 Reiniciar",
+                shopTitle: "🛒 Loja do Jogo", yourCoins: "Suas Moedas",
+                redTitle: "🔴 Uniforme Vermelho", redDesc: "Cor vermelha para o jogador",
+                ballTitle: "🟡 Bola de Ouro", ballDesc: "Bola especial brilhante",
+                speedTitle: "⚡ Super Velocidade", speedDesc: "Aumenta a velocidade de movimento",
+                back: "Voltar", active: "Ativo / Selecionado", buy: "comprar",
+                goal: "GOL! VOCÊ VENCEU! (+30 🪙)", botGoal: "GOL! O BOT VENCEU!",
+                leadTitle: "🏆 Ranking Diário", leadDesc: "Prêmios especiais do Telegram para os melhores artilheiros!",
+                prize: "Prêmio"
+            },
+            hi: {
+                title: "TG फ़ुटबॉल प्रो", subtitle: "व्यापक टेलीग्राम फ़ुटबॉल चैम्पियनशिप",
+                coins: "सिक्के", best: "सर्वश्रेष्ठ", start: "🚀 खेल शुरू करें",
+                lead: "🏆 दैनिक रैंकिंग", shop: "🛒 दुकान", arena: "अरेना",
+                you: "आप", power: "सुपर शॉट", shopBtn: "दुकान",
+                pauseTitle: "खेल रुका हुआ है", pauseSub: "आराम करें या मेनू पर लौटें",
+                resume: "▶️ जारी रखें", home: "🏠 मुख्य मेनू", restart: "🔄 पुनः आरंभ करें",
+                shopTitle: "🛒 गेम शॉप", yourCoins: "आपके सिक्के",
+                redTitle: "🔴 लाल जर्सी", redDesc: "खिलाड़ी के लिए लाल रंग",
+                ballTitle: "🟡 गोल्डन बॉल", ballDesc: "चमकदार विशेष गेंद",
+                speedTitle: "⚡ सुपर स्पीड", speedDesc: "गति बढ़ाता है",
+                back: "वापस", active: "सक्रिय / चयनित", buy: "खरीदें",
+                goal: "गोल! आप जीत गए! (+30 🪙)", botGoal: "गोल! बॉट जीत गया!",
+                leadTitle: "🏆 दैनिक रैंकिंग", leadDesc: "शीर्ष स्कोरर के लिए विशेष टेलीग्राम पुरस्कार!",
+                prize: "पुरस्कार"
+            },
+            tk: {
+                title: "TG FUTBOL PRO", subtitle: "Köpçülikleýin Telegram Futbol Çempionaty",
+                coins: "Tanga", best: "Iň gowulary", start: "🚀 OÝYNY BAŞLAMAK",
+                lead: "🏆 GÜNLÜK REÝTING", shop: "🛒 DÜKAN", arena: "Arena",
+                you: "Siz", power: "GÜÝÇLI URGY", shopBtn: "Dükan",
+                pauseTitle: "Oýun Pauzada", pauseSub: "Dynç alyň ýa-da menýuga gaýdyň",
+                resume: "▶️ Dowam etmek", home: "🏠 Esasy menýu", restart: "🔄 Täzeden başlamak",
+                shopTitle: "🛒 Oýun Dükani", yourCoins: "Tangalaryňyz",
+                redTitle: "🔴 Gyzyl Geýim", redDesc: "Oýunçy üçin gyzyl reňk",
+                ballTitle: "🟡 Altyn Top", ballDesc: "Ýalpyldawuk ýörite top",
+                speedTitle: "⚡ Super Tizlik", speedDesc: "Hereket tizligini ýokarlandyrýar",
+                back: "Yza", active: "Işjeň / Saýlanan", buy: "satyn almak",
+                goal: "GOL! SIZ UTDANYZ! (+30 🪙)", botGoal: "GOL! BOT UTDI!",
+                leadTitle: "🏆 Günlük Reýting", leadDesc: "Her gün iň köp gol uranlara ýörite Telegram sowgatlary!",
+                prize: "Sowgat"
+            },
+            az: {
+                title: "TG FUTBOL PRO", subtitle: "Kütləvi Telegram Futbol Çempionatı",
+                coins: "Sikkələr", best: "Ən yaxşı", start: "🚀 OYUNA BAŞLA",
+                lead: "🏆 GÜNLÜK REYTİNQ", shop: "🛒 MAĞAZA", arena: "Arena",
+                you: "Sən", power: "GÜCLÜ ZƏRBƏ", shopBtn: "Mağaza",
+                pauseTitle: "Oyun Dayandırılıb", pauseSub: "Dincəlin və ya menyuya qayıdın",
+                resume: "▶️ Davam et", home: "🏠 Əsas menyu", restart: "🔄 Yenidən başla",
+                shopTitle: "🛒 Oyun Mağazası", yourCoins: "Sikkələriniz",
+                redTitle: "🔴 Qırmızı Forma", redDesc: "Oyunçu üçün qırmızı rəng",
+                ballTitle: "🟡 Qızıl Top", ballDesc: "Parlaq xüsusi top",
+                speedTitle: "⚡ Super Sürət", speedDesc: "Hərəkət sürətini artırır",
+                back: "Geri", active: "Aktiv / Seçilmiş", buy: "al",
+                goal: "QOL! QƏLƏBƏ! (+30 🪙)", botGoal: "QOL! BOT QAZANDI!",
+                leadTitle: "🏆 Gündəlik Reytinq", leadDesc: "Hər gün ən çox qol vuranlara xüsusi Telegram hədiyyələri!",
+                prize: "Hədiyyə"
+            },
+            tg: {
+                title: "TG FUTBOL PRO", subtitle: "Чемпионати Футбол",
+                coins: "Танга", best: "Беҳтарин", start: "🚀 ОҒОЗИ БОЗӢ",
+                lead: "🏆 РЕЙТИНГИ РӮЗОНА", shop: "🛒 ДӮКОН", arena: "Майдон",
+                you: "Шумо", power: "ЗАРБАИ ҚАВӢ", shopBtn: "Дӯкон",
+                pauseTitle: "Бозӣ Таваққуф", pauseSub: "Истироҳат кунед ё ба меню гардед",
+                resume: "▶️ Идома", home: "🏠 Менюи асосӣ", restart: "🔄 Аз нав",
+                shopTitle: "🛒 Дӯкони Бозӣ", yourCoins: "Тангаҳои шумо",
+                redTitle: "🔴 Либоси Сурх", redDesc: "Ранги сурх барои бозингар",
+                ballTitle: "🟡 Тӯби Тллоӣ", redDesc: "Тӯби махсуси дурахшон",
+                speedTitle: "⚡ Суръати Олӣ", speedDesc: "Суръати ҳаракатро меафзояд",
+                back: "Бозгашт", active: "Фол / Интихоб", buy: "харидан",
+                goal: "ГОЛ! ШУМО БУРД КАРДЕД! (+30 🪙)", botGoal: "ГОЛ! БОТ БУРД КАРД!",
+                leadTitle: "🏆 Рейтинги Рӯзона", leadDesc: "Тӯҳфаҳои махсуси Telegram барои беҳтарин голзанҳо!",
+                prize: "Тӯҳфа"
+            },
+            uk: {
+                title: "TG FOOTBALL PRO", subtitle: "Масовий Telegram Футбольний Чемпіонат",
+                coins: "Монети", best: "Рекорд", start: "🚀 ПОЧАТИ ГРУ",
+                lead: "🏆 РЕЙТИНГ ДНЯ", shop: "🛒 МАГАЗИН", arena: "Арена",
+                you: "Ви", power: "СУПЕР УДАР", shopBtn: "Магазин",
+                pauseTitle: "Гра на паузі", pauseSub: "Відпочиньте або поверніться в меню",
+                resume: "▶️ Продовжити", home: "🏠 Головне меню", restart: "🔄 Перезапустити",
+                shopTitle: "🛒 Ігровий Магазин", yourCoins: "Ваші монети",
+                redTitle: "🔴 Червона Форма", redDesc: "Червоний колір гравця",
+                ballTitle: "🟡 Золотий М'яч", ballDesc: "Блискучий особливий м'яч",
+                speedTitle: "⚡ Супер Швидкість", speedDesc: "Збільшує швидкість руху",
+                back: "Назад", active: "Активний / Обраний", buy: "купити",
+                goal: "ГОЛ! ВИ ПЕРЕМОГЛИ! (+30 🪙)", botGoal: "ГОЛ! БОТ ПЕРЕМОГ!",
+                leadTitle: "🏆 Рейтинг Дня", leadDesc: "Щоденні призи Telegram для найкращих бомбардирів!",
+                prize: "Приз"
+            }
+        };
+
+        let currentLang = localStorage.getItem('tg_football_lang') || 'uz';
+        document.getElementById('languageSelect').value = currentLang;
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('tg_football_lang', lang);
+            applyLocalization();
+        }
+
+        function applyLocalization() {
+            const t = translations[currentLang] || translations['uz'];
+            document.getElementById('menuTitle').innerText = t.title;
+            document.getElementById('menuSubtitle').innerText = t.subtitle;
+            document.getElementById('lblCoins').innerText = t.coins;
+            document.getElementById('lblBest').innerText = t.best;
+            document.getElementById('btnStartGame').innerText = t.start;
+            document.getElementById('btnLeaderboard').innerText = t.lead;
+            document.getElementById('btnShop').innerText = t.shop;
+            document.getElementById('headerArena').innerText = t.arena;
+            document.getElementById('lblYou').innerText = t.you;
+            document.getElementById('btnPowerText').innerText = t.power;
+            document.getElementById('btnShopText').innerText = t.shopBtn;
+            document.getElementById('pauseTitle').innerText = t.pauseTitle;
+            document.getElementById('pauseSubtitle').innerText = t.pauseSub;
+            document.getElementById('btnResume').innerText = t.resume;
+            document.getElementById('btnHome').innerText = t.home;
+            document.getElementById('btnRestart').innerText = t.restart;
+            document.getElementById('modalShopTitle').innerText = t.shopTitle;
+            document.getElementById('shopCoinsLabel').innerText = t.yourCoins;
+            document.getElementById('itemRedTitle').innerText = t.redTitle;
+            document.getElementById('itemRedDesc').innerText = t.redDesc;
+            document.getElementById('itemBallTitle').innerText = t.ballTitle;
+            document.getElementById('itemBallDesc').innerText = t.ballDesc;
+            document.getElementById('itemSpeedTitle').innerText = t.speedTitle;
+            document.getElementById('itemSpeedDesc').innerText = t.speedDesc;
+            document.getElementById('btnBackShop').innerText = t.back;
+            document.getElementById('modalLeaderboardTitle').innerText = t.leadTitle;
+            document.getElementById('modalLeaderboardDesc').innerText = t.leadDesc;
+            document.getElementById('btnBackLead').innerText = t.back;
+            updateShopButtons();
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = Math.min(container.clientWidth - 10, 360);
+            canvas.height = Math.min(container.clientHeight - 70, 480);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let playerScore = 0;
+        let botScore = 0;
+        let coins = parseInt(localStorage.getItem('tg_football_coins')) || 100;
+        let bestScore = parseInt(localStorage.getItem('tg_best_score')) || 0;
+        let isGoal = false;
+        let isPaused = false;
+        let powerRequested = false;
+        let gameActive = false;
+
+        let playerColor = localStorage.getItem('tg_player_color') || '#3b82f6';
+        let ballColor = localStorage.getItem('tg_ball_color') || '#ffffff';
+        let speedMultiplier = parseFloat(localStorage.getItem('tg_speed_boost')) || 1.0;
+        let purchasedItems = JSON.parse(localStorage.getItem('tg_purchased_items')) || [];
+
+        updateMenuStats();
+        applyLocalization();
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: 0,
+            vy: 0,
+            radius: 11,
+            friction: 0.985
+        };
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 80,
+            targetX: canvas.width / 2,
+            targetY: canvas.height - 80,
+            radius: 16,
+            speed: 0.22 * speedMultiplier
+        };
+
+        const bot = {
+            x: canvas.width / 2,
+            y: 80,
+            radius: 16,
+            speed: 2.6
+        };
+
+        let isPointerActive = false;
+
+        function updatePointerPosition(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            player.targetX = clientX - rect.left;
+            player.targetY = clientY - rect.top;
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (isPaused || !gameActive) return;
+            isPointerActive = true;
+            updatePointerPosition(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isPointerActive && !isPaused && gameActive) {
+                updatePointerPosition(e.clientX, e.clientY);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPointerActive = false;
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (isPaused || !gameActive) return;
+            isPointerActive = true;
+            updatePointerPosition(e.touches[0].clientX, e.touches[0].clientY);
+            e.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (isPointerActive && !isPaused && gameActive) {
+                updatePointerPosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => {
+            isPointerActive = false;
+        });
+
+        const powerBtn = document.getElementById('powerShotBtn');
+        powerBtn.addEventListener('click', () => {
+            if (!isPaused && gameActive) powerRequested = true;
+        });
+
+        function startGamePlay() {
+            document.getElementById('mainMenu').classList.add('opacity-0', 'pointer-events-none');
+            gameActive = true;
+            resetGame();
+        }
+
+        function returnToMenu() {
+            gameActive = false;
+            isPaused = false;
+            document.getElementById('pauseMenu').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('shopModal').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('leaderboardModal').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('mainMenu').classList.remove('opacity-0', 'pointer-events-none');
+            updateMenuStats();
+        }
+
+        function updateMenuStats() {
+            document.getElementById('menuCoins').innerText = coins + ' 🪙';
+            document.getElementById('menuBestScore').innerText = bestScore + ' Gol';
+        }
+
+        function togglePause() {
+            if (!gameActive) return;
+            isPaused = !isPaused;
+            const pauseMenu = document.getElementById('pauseMenu');
+            if (isPaused) {
+                pauseMenu.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                pauseMenu.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function openMenuShop() {
+            document.getElementById('shopCoins').innerText = coins;
+            document.getElementById('shopModal').classList.remove('opacity-0', 'pointer-events-none');
+            updateShopButtons();
+        }
+
+        function closeMenuShop() {
+            document.getElementById('shopModal').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function openLeaderboard() {
+            renderLeaderboardData();
+            document.getElementById('leaderboardModal').classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('leaderboardModal').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function renderLeaderboardData() {
+            const listContainer = document.getElementById('leaderboardList');
+            const t = translations[currentLang] || translations['uz'];
+            let myUsername = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.first_name) ? window.Telegram.WebApp.initDataUnsafe.user.first_name : "Siz";
+            
+            let dummyLeaders = [
+                { rank: 1, name: "👑 Bekzod_77", score: 42, prize: "iPhone 15" },
+                { rank: 2, name: "🥈 Sardor_Pro", score: 35, prize: "Telegram Premium" },
+                { rank: 3, name: "🥉 Jasur_99", score: 28, prize: "50,000 UZS" },
+                { rank: 4, name: "4. Alisher", score: 19, prize: "-" },
+                { rank: 5, name: "5. " + myUsername, score: bestScore, prize: bestScore > 10 ? "Telegram Gift!" : "-" }
+            ];
+
+            dummyLeaders.sort((a, b) => b.score - a.score);
+            dummyLeaders.forEach((item, index) => { item.rank = index + 1; });
+
+            let html = '';
+            dummyLeaders.forEach(leader => {
+                let isMe = leader.name.includes(myUsername) || leader.name.includes("Siz");
+                html += `
+                    <div class="flex justify-between items-center p-2 rounded-xl bg-slate-900/80 border ${isMe ? 'border-amber-500/60 bg-amber-500/10' : 'border-slate-800'}">
+                        <div>
+                            <span class="font-extrabold text-white">#${leader.rank} ${leader.name}</span>
+                            <div class="text-[10px] text-slate-400">${t.prize}: <span class="text-amber-300">${leader.prize}</span></div>
+                        </div>
+                        <div class="font-extrabold text-emerald-400">${leader.score} Gol</div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+
+        function buyItem(itemCode, price) {
+            const t = translations[currentLang] || translations['uz'];
+            if (purchasedItems.includes(itemCode)) {
+                if (itemCode === 'skin_red') {
+                    playerColor = '#ef4444';
+                    localStorage.setItem('tg_player_color', playerColor);
+                } else if (itemCode === 'ball_gold') {
+                    ballColor = '#f59e0b';
+                    localStorage.setItem('tg_ball_color', ballColor);
+                }
+                alertBox(t.active);
+                updateShopButtons();
+                return;
+            }
+
+            if (coins >= price) {
+                coins -= price;
+                purchasedItems.push(itemCode);
+                localStorage.setItem('tg_football_coins', coins);
+                localStorage.setItem('tg_purchased_items', JSON.stringify(purchasedItems));
+
+                if (itemCode === 'skin_red') {
+                    playerColor = '#ef4444';
+                    localStorage.setItem('tg_player_color', playerColor);
+                } else if (itemCode === 'ball_gold') {
+                    ballColor = '#f59e0b';
+                    localStorage.setItem('tg_ball_color', ballColor);
+                } else if (itemCode === 'speed_boost') {
+                    speedMultiplier = 1.25;
+                    player.speed = 0.28 * speedMultiplier;
+                    localStorage.setItem('tg_speed_boost', speedMultiplier);
+                }
+
+                updateUI();
+                updateShopButtons();
+                alertBox("OK!");
+            } else {
+                alertBox("Tangalar yetarli emas!");
+            }
+        }
+
+        function updateShopButtons() {
+            const t = translations[currentLang] || translations['uz'];
+            document.getElementById('shopCoins').innerText = coins;
+            const items = ['skin_red', 'ball_gold', 'speed_boost'];
+            items.forEach(item => {
+                const btn = document.getElementById('btn_' + item);
+                if (btn && purchasedItems.includes(item)) {
+                    btn.innerText = t.active;
+                    btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition";
+                }
+            });
+        }
+
+        function alertBox(text) {
+            const box = document.createElement('div');
+            box.className = 'fixed inset-0 flex items-center justify-center bg-black/60 z-50 p-4';
+            box.innerHTML = `
+                <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl max-w-xs text-center space-y-3 shadow-2xl">
+                    <p class="text-xs text-white font-medium">${text}</p>
+                    <button onclick="this.parentElement.parentElement.remove()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold text-xs transition">OK</button>
+                </div>
+            `;
+            document.body.appendChild(box);
+        }
+
+        function updateUI() {
+            document.getElementById('coinBalance').innerText = coins;
+            document.getElementById('playerScore').innerText = playerScore;
+            document.getElementById('botScore').innerText = botScore;
+            localStorage.setItem('tg_football_coins', coins);
+
+            if (playerScore > bestScore) {
+                bestScore = playerScore;
+                localStorage.setItem('tg_best_score', bestScore);
+            }
+        }
+
+        function resetPositions() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.vx = 0;
+            ball.vy = 0;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 80;
+            player.targetX = canvas.width / 2;
+            player.targetY = canvas.height - 80;
+            bot.x = canvas.width / 2;
+            bot.y = 80;
+            powerRequested = false;
+        }
+
+        function triggerGoal(text, scorer) {
+            if (isGoal) return;
+            isGoal = true;
+
+            if (scorer === 'player') {
+                playerScore++;
+                coins += 30;
+            } else {
+                botScore++;
+            }
+
+            updateUI();
+
+            const popup = document.getElementById('goalPopup');
+            const goalText = document.getElementById('goalText');
+            goalText.innerText = text;
+            popup.classList.remove('opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                popup.classList.add('opacity-0', 'pointer-events-none');
+                resetPositions();
+                isGoal = false;
+            }, 1800);
+        }
+
+        function update() {
+            if (isGoal || isPaused || !gameActive) return;
+
+            player.x += (player.targetX - player.x) * player.speed;
+            player.y += (player.targetY - player.y) * player.speed;
+
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(canvas.height / 2, Math.min(canvas.height - player.radius, player.y));
+
+            let botTargetX = ball.x;
+            let botTargetY = ball.y < canvas.height / 2 ? ball.y : 70;
+            
+            let dxBot = botTargetX - bot.x;
+            let dyBot = botTargetY - bot.y;
+            let distBot = Math.sqrt(dxBot * dxBot + dyBot * dyBot);
+
+            if (distBot > 1) {
+                bot.x += (dxBot / distBot) * Math.min(bot.speed, distBot);
+                bot.y += (dyBot / distBot) * Math.min(bot.speed, distBot);
+            }
+
+            bot.x = Math.max(bot.radius, Math.min(canvas.width - bot.radius, bot.x));
+            bot.y = Math.max(bot.radius, Math.min(canvas.height / 2 + 20, bot.y));
+
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+            ball.vx *= ball.friction;
+            ball.vy *= ball.friction;
+
+            if (Math.abs(ball.vx) < 0.05) ball.vx = 0;
+            if (Math.abs(ball.vy) < 0.05) ball.vy = 0;
+
+            if (ball.x < 15 && (ball.y < 35 || ball.y > canvas.height - 35)) {
+                ball.vx += 1.5;
+                ball.vy += (ball.y < canvas.height / 2 ? 1.2 : -1.2);
+            }
+            if (ball.x > canvas.width - 15 && (ball.y < 35 || ball.y > canvas.height - 35)) {
+                ball.vx -= 1.5;
+                ball.vy += (ball.y < canvas.height / 2 ? 1.2 : -1.2);
+            }
+
+            if (ball.x - ball.radius < 12) {
+                ball.x = 12 + ball.radius;
+                ball.vx *= -1;
+            }
+            if (ball.x + ball.radius > canvas.width - 12) {
+                ball.x = canvas.width - 12 - ball.radius;
+                ball.vx *= -1;
+            }
+
+            handleCollision(player, true);
+            handleCollision(bot, false);
+
+            const goalWidth = 90;
+            const goalLeft = (canvas.width - goalWidth) / 2;
+            const goalRight = goalLeft + goalWidth;
+
+            const t = translations[currentLang] || translations['uz'];
+            if (ball.y - ball.radius < 12) {
+                if (ball.x > goalLeft && ball.x < goalRight) {
+                    triggerGoal(t.goal, 'player');
+                    return;
+                } else {
+                    ball.y = 12 + ball.radius;
+                    ball.vy *= -1;
+                }
+            }
+
+            if (ball.y + ball.radius > canvas.height - 12) {
+                if (ball.x > goalLeft && ball.x < goalRight) {
+                    triggerGoal(t.botGoal, 'bot');
+                    return;
+                } else {
+                    ball.y = canvas.height - 12 - ball.radius;
+                    ball.vy *= -1;
+                }
+            }
+        }
+
+        function handleCollision(entity, isPlayer) {
+            const dx = ball.x - entity.x;
+            const dy = ball.y - entity.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDist = entity.radius + ball.radius;
+
+            if (distance < minDist) {
+                const angle = Math.atan2(dy, dx);
+                const overlap = minDist - distance;
+
+                ball.x += Math.cos(angle) * overlap;
+                ball.y += Math.sin(angle) * overlap;
+
+                let hitPower = isPlayer ? 8.0 : 6.5;
+                if (isPlayer && powerRequested) {
+                    hitPower = 15.0;
+                    powerRequested = false;
+                }
+
+                ball.vx = Math.cos(angle) * hitPower + (isPlayer ? (player.targetX - player.x) * 0.04 : 0);
+                ball.vy = Math.sin(angle) * hitPower + (isPlayer ? (player.targetY - player.y) * 0.04 : 0);
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+
+            ctx.beginPath();
+            ctx.moveTo(12, canvas.height / 2);
+            ctx.lineTo(canvas.width - 12, canvas.height / 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 38, 0, Math.PI * 2);
+            ctx.stroke();
+
+            const goalWidth = 90;
+            const goalLeft = (canvas.width - goalWidth) / 2;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.fillRect(goalLeft, 0, goalWidth, 12);
+            ctx.fillRect(goalLeft, canvas.height - 12, goalWidth, 12);
+
+            ctx.beginPath();
+            ctx.arc(bot.x, bot.y, bot.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ef4444';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#991b1b';
+            ctx.stroke();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fillStyle = playerColor;
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#1e3a8a';
+            ctx.stroke();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ballColor;
+            ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#94a3b8';
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        function resetGame() {
+            playerScore = 0;
+            botScore = 0;
+            isPaused = false;
+            document.getElementById('pauseMenu').classList.add('opacity-0', 'pointer-events-none');
+            updateUI();
+            resetPositions();
+        }
+
+        loop();
+    </script>
+</body>
+</html>
